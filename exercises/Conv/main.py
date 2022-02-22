@@ -1,5 +1,5 @@
 import skimage
-from skimage import data
+from skimage import data, filters
 import matplotlib.pyplot as plt
 import scipy
 from scipy import ndimage
@@ -40,9 +40,9 @@ def main2():
     fig, (img1, img2, img3, img4) = plt.subplots(1, 4)
 
     # het valt op dat ze deze filter veel beter werken, de edges zijn duidelijker.
-    newimage1 = skimage.filters.edges.farid(image)
-    newimage2 = skimage.filters.edges.roberts(image)
-    newimage3 = skimage.filters.edges.prewitt(image)
+    newimage1 = filters.farid(image)
+    newimage2 = filters.roberts(image)
+    newimage3 = filters.prewitt(image)
 
     img1.imshow(image)
     img2.imshow(newimage1)

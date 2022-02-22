@@ -7,8 +7,6 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-.idea/
-python/
 .Python
 build/
 develop-eggs/
@@ -129,6 +127,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Python
+python/
+
+# PyCharm
+.idea/
 
 # Image big
 image_set/
