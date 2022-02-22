@@ -1,0 +1,6 @@
+tensorflow==2.8.0
+matplotlib==3.3.2
+scipy==1.5.2
+numpy==1.22.2
+mnist==0.2.2
+jupyter==1.0.0
