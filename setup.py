@@ -9,7 +9,7 @@ setup(
         'pytest',
         'coverage',
         'tensorflow',
-        # 'opencv',
+        'opencv-python',
         'scikit-image',
         'matplotlib',
     ],
