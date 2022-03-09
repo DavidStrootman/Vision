@@ -7,6 +7,11 @@ import numpy as np
 import cv2 as cv
 
 
+def dilate(in_image, iterations: int):
+    kernel = np.ones((5, 5), np.uint8)
+    return cv.dilate(in_image, kernel, iterations=iterations)
+
+
 def cluster(in_image, k):
     # Clustering
     z = in_image.reshape((-1, 3))
@@ -23,25 +28,34 @@ def cluster(in_image, k):
 
 
 def canny(in_image):
-    edges = cv.Canny(in_image, 100, 200)
+    edges = cv.Canny(in_image, 50, 150)
     return edges
 
 
-def contour(in_image):
-    blank_image = np.zeros(in_image.shape)
+def contour(in_image, new_image: bool, out_image=None):
+    image_copy = np.zeros(in_image.shape) if new_image else in_image.copy()
     ret, thresh = cv.threshold(in_image, 127, 255, 0)
+
     thresh = cv.cvtColor(thresh, cv.COLOR_BGR2GRAY)
 
     contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    cv.drawContours(blank_image, contours, -1, (0, 255, 0), 3)
+    output = out_image if out_image is not None else image_copy
+    cv.drawContours(output, contours, -1, (0, 255, 0), thickness=1)
 
-    return blank_image
+    return output, contours
 
 
-def hough(in_image):
-    lines = cv.HoughLinesP(in_image, 1, np.pi / 180, threshold=60, minLineLength=1, maxLineGap=20)
+def hough(in_image, threshold: int, min_line_length: int, max_line_gap: int):
+    lines = cv.HoughLinesP(image=in_image,
+                           rho=1,
+                           theta=np.pi / 180,
+                           threshold=threshold,
+                           minLineLength=min_line_length,
+                           maxLineGap=max_line_gap)
 
     lines = [] if lines is None else lines
+
+    blank_image = np.zeros(in_image.shape)
 
     # Iterate over points
     for points in lines:
@@ -49,8 +63,8 @@ def hough(in_image):
         x1, y1, x2, y2 = points[0]
         # Draw the lines join the points
         # On the original image
-        cv.line(in_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
+        cv.line(blank_image, (x1, y1), (x2, y2), (0, 255, 0), 2)
         # Maintain a simples lookup list for points
         # lines_list.append([(x1,y1),(x2,y2)])
 
-    return in_image
+    return blank_image

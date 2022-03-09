@@ -7,6 +7,7 @@ setup(
     package_dir={'': 'src'},
     install_requires=[
         'pytest',
+        'numpy',
         'coverage',
         'tensorflow',
         'opencv-python',
