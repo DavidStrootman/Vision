@@ -11,23 +11,23 @@ from lib.manipulate import cluster, canny, contour, hough, dilate
 
 def main():
     image_paths = [
-        # "../image_set/train/NORMAL/IM-0115-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0117-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0119-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0122-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0125-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0115-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0117-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0119-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0122-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0125-0001.jpeg",
         "../image_set/train/NORMAL/IM-0128-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0129-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0131-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0133-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0135-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0137-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0140-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0141-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0143-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0145-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0147-0001.jpeg",
-        # "../image_set/train/NORMAL/IM-0149-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0129-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0131-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0133-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0135-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0137-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0140-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0141-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0143-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0145-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0147-0001.jpeg",
+        "../image_set/train/NORMAL/IM-0149-0001.jpeg",
     ]
 
     for image_path in image_paths:
@@ -35,19 +35,22 @@ def main():
         image = cv.imread(image_path)
         # display_image("Input image", image)
 
-        clustered = cluster(image, 3)
+        clustered = cluster(image, 4)
+        # display_image("Clustering", clustered)
+
+        clustered = cluster(clustered, 2)
         # display_image("Clustering", clustered)
 
         dilated = dilate(clustered, 4)
-        # display_image("Input image", dilated)
+        # display_image("Dilated", dilated)
 
         contoured, contours = contour(dilated, True)
         # display_image("Dilated Contour", contoured)
 
         # cv.fillPoly(contoured, pts=contours, color=(255, 255, 255))
         # display_image("Filled Contour", contoured)
-        flood_mask = np.zeros(contoured.shape[:2], dtype=np.uint8)
 
+        flood_mask = np.zeros(contoured.shape[:2], dtype=np.uint8)
         flood_mask = cv.copyMakeBorder(flood_mask, 1, 1, 1, 1, borderType=cv.BORDER_CONSTANT)
         # flood_mask = np.zeros(tuple(map(lambda dim: dim + 2, contoured.shape[:2])), dtype=np.uint8)
 
