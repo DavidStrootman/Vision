@@ -15,5 +15,6 @@ def display_image_from_path(title: str, image_path: Path):
 
 def display_image(title: str, image: np.ndarray):
     plt.title(title)
-    plt.imshow(image, cmap="gray")
+    plt.axis("off")
+    plt.imshow(image)
     plt.show()

@@ -7,14 +7,25 @@ import numpy as np
 import cv2 as cv
 
 
-def dilate(in_image, iterations: int):
-    kernel = np.ones((5, 5), np.uint8)
+def adjust_gamma(image, gamma=1.0):
+    # Taken from pyimagesearch.com: opencv-gamma-correction (2015-10-05)
+    # build a lookup table mapping the pixel values [0, 255] to
+    # their adjusted gamma values
+    inv_gamma = 1.0 / gamma
+    table = np.array([((i / 255.0) ** inv_gamma) * 255
+                      for i in np.arange(0, 256)]).astype("uint8")
+    # apply gamma correction using the lookup table
+    return cv.LUT(image, table)
+
+
+def dilate(in_image, kernel, iterations: int):
+    kernel = np.ones(kernel, np.uint8)
     return cv.dilate(in_image, kernel, iterations=iterations)
 
 
 def cluster(in_image, k):
     # Clustering
-    z = in_image.reshape((-1, 3))
+    z = in_image.reshape((-1, 1))
     # convert to np.float32
     z = np.float32(z)
     # define criteria, number of clusters(K) and apply kmeans()
@@ -35,8 +46,6 @@ def canny(in_image):
 def contour(in_image, new_image: bool, out_image=None):
     image_copy = np.zeros(in_image.shape) if new_image else in_image.copy()
     ret, thresh = cv.threshold(in_image, 127, 255, 0)
-
-    thresh = cv.cvtColor(thresh, cv.COLOR_BGR2GRAY)
 
     contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
     output = out_image if out_image is not None else image_copy
