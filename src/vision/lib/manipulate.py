@@ -5,6 +5,82 @@ FIXME: many of these "functions" have pretty bad side effects.
 """
 import numpy as np
 import cv2 as cv
+import matplotlib.pyplot as plt
+from pathlib import Path
+
+
+def full_manipulation(image_paths: list[Path], plot_images: bool=False) -> list[np.ndarray]:
+    manipulated_images = []
+    for i, image_path in enumerate(image_paths):
+        print(image_path)
+
+        # ----- Read image
+        image = cv.imread(image_path.as_posix()).astype("uint8")
+
+        # ----- convert to grayscale
+        image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
+
+        # ----- Equalize histogram
+        equalized = cv.equalizeHist(image)
+
+        # ----- Increase gamma
+        gamma = adjust_gamma(equalized, 5.0)
+
+        # ----- Threshold
+        _, thresholded = cv.threshold(gamma, 208, 255, cv.THRESH_BINARY)
+
+        # ----- Remove photo artifacts from some images:
+        erode_kernel = np.ones((2, 2), np.uint8)
+        eroded = cv.erode(src=thresholded, kernel=erode_kernel)
+
+        # ----- Strip small components in the mask (smaller than 1/10 of the image)
+        min_size = eroded.shape[0] * eroded.shape[1] // 10
+        n_components, labels, stats, _ = cv.connectedComponentsWithStats(eroded, connectivity=8)
+        sizes = stats[1:, -1]
+
+        filtered_components = np.zeros(eroded.shape)
+        for c in range(0, n_components - 1):
+            if sizes[c] >= min_size:
+                filtered_components[labels == c + 1] = 255
+
+        # ----- Dilate to connect "small" gaps
+        blur_kernel = (11, 11)
+        dilated = cv.GaussianBlur(filtered_components, blur_kernel, 2, 2)
+        dilate_kernel = (10, 10)
+        dilated = dilate(dilated, dilate_kernel, 5)
+
+        # ----- Flood sides
+        flood_mask = np.zeros(dilated.shape, dtype=np.uint8)
+        flood_mask = cv.copyMakeBorder(flood_mask, 1, 1, 1, 1, borderType=cv.BORDER_CONSTANT)
+        # ----- Flood left side
+        flood_input = dilated.astype('uint8')
+        cv.floodFill(image=flood_input,
+                     mask=flood_mask,
+                     seedPoint=(1, flood_input.shape[0] // 2),
+                     newVal=(255, 0, 0),
+                     flags=cv.FLOODFILL_MASK_ONLY
+                     )
+
+        # ----- Flood right side
+        cv.floodFill(image=flood_input,
+                     mask=flood_mask,
+                     seedPoint=(flood_input.shape[1] - 1, flood_input.shape[0] // 2),
+                     newVal=(255, 0, 0),
+                     flags=cv.FLOODFILL_MASK_ONLY
+                     )
+
+        # Remove the 1 pixel border required for masking in flood from all sides
+        flood_mask = flood_mask[1:flood_mask.shape[0] - 1, 1: flood_mask.shape[1] - 1]
+        _, flood_mask = cv.threshold(flood_mask, 0, 255, cv.THRESH_BINARY_INV)
+
+        output_image = cv.bitwise_and(image, image, mask=flood_mask)
+        manipulated_images.append(output_image)
+        if plot_images is True:
+            plt.axis("off")
+            plt.imshow(output_image)
+            plt.show()
+
+    return manipulated_images
 
 
 def adjust_gamma(image, gamma=1.0):
