@@ -6,16 +6,15 @@ FIXME: many of these "functions" have pretty bad side effects.
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
-from pathlib import Path
+from lib.network import images_with_labels, XraySequence
+from lib.util import display_image
 
 
-def full_manipulation(image_paths: list[Path], plot_images: bool=False) -> list[np.ndarray]:
+def full_manipulation(images: XraySequence, plot_images: bool = False) -> XraySequence:
     manipulated_images = []
-    for i, image_path in enumerate(image_paths):
-        print(image_path)
 
+    for image, _ in images:
         # ----- Read image
-        image = cv.imread(image_path.as_posix()).astype("uint8")
 
         # ----- convert to grayscale
         image = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
@@ -32,7 +31,6 @@ def full_manipulation(image_paths: list[Path], plot_images: bool=False) -> list[
         # ----- Remove photo artifacts from some images:
         erode_kernel = np.ones((2, 2), np.uint8)
         eroded = cv.erode(src=thresholded, kernel=erode_kernel)
-
         # ----- Strip small components in the mask (smaller than 1/10 of the image)
         min_size = eroded.shape[0] * eroded.shape[1] // 10
         n_components, labels, stats, _ = cv.connectedComponentsWithStats(eroded, connectivity=8)
@@ -74,13 +72,13 @@ def full_manipulation(image_paths: list[Path], plot_images: bool=False) -> list[
         _, flood_mask = cv.threshold(flood_mask, 0, 255, cv.THRESH_BINARY_INV)
 
         output_image = cv.bitwise_and(image, image, mask=flood_mask)
-        manipulated_images.append(output_image)
+        manipulated_images.append(cv.resize(image, (2000, 2000), interpolation=cv.INTER_LINEAR))
         if plot_images is True:
             plt.axis("off")
             plt.imshow(output_image)
             plt.show()
 
-    return manipulated_images
+    return XraySequence(manipulated_images, images.y_set, images.batch_size)
 
 
 def adjust_gamma(image, gamma=1.0):
