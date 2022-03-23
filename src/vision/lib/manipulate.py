@@ -72,7 +72,7 @@ def full_manipulation(images: XraySequence, plot_images: bool = False) -> XraySe
         _, flood_mask = cv.threshold(flood_mask, 0, 255, cv.THRESH_BINARY_INV)
 
         output_image = cv.bitwise_and(image, image, mask=flood_mask)
-        manipulated_images.append(cv.resize(image, (2000, 2000), interpolation=cv.INTER_LINEAR))
+        manipulated_images.append(cv.resize(output_image, (1000, 1000), interpolation=cv.INTER_LINEAR))
         if plot_images is True:
             plt.axis("off")
             plt.imshow(output_image)

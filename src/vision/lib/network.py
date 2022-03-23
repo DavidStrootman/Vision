@@ -116,20 +116,36 @@ def load_data(paths: chain[tuple[Path, str]], batch_size) -> XraySequence:
     return XraySequence(images, labels, batch_size)
 
 
-def create_model(input_shape: tuple) -> ks.models.Model:
+def create_model(input_shape: tuple, num_filters: int, filter_size: int = 4, batch_size=4) -> ks.models.Model:
     model: ks.models.Sequential = ks.models.Sequential()
     # input
-    # model.add(Input(shape=input_shape))
+    model.add(Input(shape=input_shape, batch_size=batch_size))
     # Network
-    model.add(Conv2D(filters=32, kernel_size=3, padding="same", input_shape=input_shape, activation="relu"))
-    model.add(MaxPooling2D(pool_size=2, padding="same"))
-
+    model.add(Conv2D(filters=num_filters, kernel_initializer='he_uniform', padding='same', kernel_size=filter_size,
+                     activation="relu"))
+    model.add(Conv2D(filters=num_filters, kernel_initializer='he_uniform', padding='same', kernel_size=filter_size,
+                     activation="relu"))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(
+        Conv2D(filters=num_filters * 2, kernel_initializer='he_uniform', padding='same', kernel_size=filter_size,
+               activation="relu"))
+    model.add(
+        Conv2D(filters=num_filters * 2, kernel_initializer='he_uniform', padding='same', kernel_size=filter_size,
+               activation="relu"))
+    model.add(MaxPooling2D((2, 2)))
+    model.add(
+        Conv2D(filters=num_filters * 2 * 2, kernel_initializer='he_uniform', padding='same', kernel_size=filter_size,
+               activation="relu"))
+    model.add(
+        Conv2D(filters=num_filters * 2 * 2, kernel_initializer='he_uniform', padding='same', kernel_size=filter_size,
+               activation="relu"))
+    model.add(MaxPooling2D((2, 2)))
     # Output
     model.add(Flatten())
+    # model.add(Dense(128, activation="relu", kernel_initializer='he_uniform'))
     model.add(Dense(3, activation="softmax"))
-
     # Compile
-    model.compile('adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile('adam', loss='categorical_crossentropy', metrics=['categorical_accuracy'])
 
     return model
 
@@ -139,10 +155,13 @@ def train_model(model: ks.models.Model, train_data: XraySequence, validation_dat
     """
     Trains a model and returns the trained model along with the training history, if at least one epoch has been run.
     """
-    history: ks.callbacks.History = model.fit(x=train_data.x_set, y=to_categorical(train_data.y_set), epochs=10)
+    history: ks.callbacks.History = model.fit(x=train_data.x_set,
+                                              y=to_categorical(train_data.y_set),
+                                              batch_size=train_data.batch_size,
+                                              epochs=2)
 
     return model, history
 
 
-def evaluate(model: ks.models.Model, images: images_with_labels) -> Union[Any, list[Any]]:
-    return model.evaluate()
+def validate_model(model: ks.models.Model, images: XraySequence, batch_size) -> Union[Any, list[Any]]:
+    return model.evaluate(images.x_set, to_categorical(images.y_set), verbose=2,batch_size=batch_size)
