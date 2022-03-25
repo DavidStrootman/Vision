@@ -164,4 +164,4 @@ def train_model(model: ks.models.Model, train_data: XraySequence, validation_dat
 
 
 def validate_model(model: ks.models.Model, images: XraySequence, batch_size) -> Union[Any, list[Any]]:
-    return model.evaluate(images.x_set, to_categorical(images.y_set), verbose=2,batch_size=batch_size)
+    return model.evaluate(images.x_set, to_categorical(images.y_set), verbose=2, batch_size=batch_size)

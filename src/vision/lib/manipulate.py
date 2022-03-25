@@ -6,8 +6,7 @@ FIXME: many of these "functions" have pretty bad side effects.
 import numpy as np
 import cv2 as cv
 import matplotlib.pyplot as plt
-from lib.network import images_with_labels, XraySequence
-from lib.util import display_image
+from lib.network import XraySequence
 
 
 def full_manipulation(images: XraySequence, plot_images: bool = False) -> XraySequence:
